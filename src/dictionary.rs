@@ -7,7 +7,7 @@ pub struct Dictionary {
 }
 
 impl Dictionary {
-    pub fn new(problem: Puzzle) -> Dictionary {
+    pub fn new(problem: &Puzzle) -> Dictionary {
         let n_pieces = problem.pieces.len();
 
         let target = &problem.target;
