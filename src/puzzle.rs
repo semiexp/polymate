@@ -1,8 +1,32 @@
-#[derive(Clone, Copy)]
+use std::ops::{Add, Sub};
+
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Coord {
     pub x: i32,
     pub y: i32,
     pub z: i32,
+}
+
+impl Add<Coord> for Coord {
+    type Output = Coord;
+    fn add(self, other: Coord) -> Coord {
+        Coord {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}
+
+impl Sub<Coord> for Coord {
+    type Output = Coord;
+    fn sub(self, other: Coord) -> Coord {
+        Coord {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -72,6 +96,34 @@ impl Rotation {
     }
 }
 
+pub const ROTATIONS: [Rotation; 24] = [
+    Rotation { origin: [0, 1, 2] },
+    Rotation { origin: [0, !1, !2] },
+    Rotation { origin: [!0, !1, 2] },
+    Rotation { origin: [!0, 1, !2] },
+    Rotation { origin: [1, 2, 0] },
+    Rotation { origin: [1, !2, !0] },
+    Rotation { origin: [!1, !2, 0] },
+    Rotation { origin: [!1, 2, !0] },
+    Rotation { origin: [2, 0, 1] },
+    Rotation { origin: [2, !0, !1] },
+    Rotation { origin: [!2, !0, 1] },
+    Rotation { origin: [!2, 0, !1] },
+    Rotation { origin: [0, 2, !1] },
+    Rotation { origin: [0, !2, 1] },
+    Rotation { origin: [!0, 2, 1] },
+    Rotation { origin: [!0, !2, !1] },
+    Rotation { origin: [1, 0, !2] },
+    Rotation { origin: [1, !0, 2] },
+    Rotation { origin: [!1, 0, 2] },
+    Rotation { origin: [!1, !0, !2] },
+    Rotation { origin: [2, 1, !0] },
+    Rotation { origin: [2, !1, 0] },
+    Rotation { origin: [!2, 1, 0] },
+    Rotation { origin: [!2, !1, 0] },
+];
+
+#[derive(PartialEq, Eq)]
 pub struct Shape {
     size: Coord,
     data: Vec<bool>,
@@ -83,6 +135,9 @@ impl Shape {
             size,
             data: vec![false; (size.x * size.y * size.z) as usize],
         }
+    }
+    pub fn size(&self) -> Coord {
+        self.size
     }
     fn coord(&self, c: Coord) -> usize {
         ((c.x * self.size.y + c.y) * self.size.z + c.z) as usize
@@ -119,6 +174,42 @@ impl Shape {
             }
         }
 
+        ret
+    }
+    pub fn is_fit(&self, piece: &Shape, offset: Coord) -> bool {
+        let piece_size = piece.size();
+        for x in 0..piece_size.x {
+            for y in 0..piece_size.y {
+                for z in 0..piece_size.z {
+                    let cd = Coord { x, y, z };
+                    if piece.get(cd) && !self.get(cd + offset) {
+                        return false;
+                    }
+                }
+            }
+        }
+        true
+    }
+    pub fn get_piece_mask(&self, piece: &Shape, offset: Coord) -> u64 {
+        let piece_size = piece.size();
+        let mut counter = 0u64;
+        let mut ret = 0u64;
+        for x in 0..self.size.x {
+            for y in 0..self.size.y {
+                for z in 0..self.size.z {
+                    let cd = Coord { x, y, z };
+                    if self.get(cd) {
+                        let piece_cd = cd - offset;
+                        if 0 <= piece_cd.x && piece_cd.x < piece_size.x && 0 <= piece_cd.y && piece_cd.y < piece_size.y && 0 <= piece_cd.z && piece_cd.z < piece_size.z {
+                            if piece.get(piece_cd) {
+                                ret |= 1u64 << counter;
+                            }
+                        }
+                        counter += 1;
+                    }
+                }
+            }
+        }
         ret
     }
 }
