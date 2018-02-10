@@ -1,4 +1,5 @@
 use super::*;
+use ::std::iter::Iterator;
 
 pub struct Dictionary {
     pub n_target_cells: i32,
@@ -73,9 +74,10 @@ impl Dictionary {
             }
         }
 
+        let piece_count = problem.pieces.iter().map(|&(_, c)| c).collect::<Vec<i32>>();
         Dictionary {
             n_target_cells,
-            piece_count: vec![],
+            piece_count,
             placements,
         }
     }
