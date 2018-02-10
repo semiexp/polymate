@@ -160,16 +160,16 @@ impl Shape {
         ];
 
         let mut ret = Shape::new(Coord { x: new_dim[0], y: new_dim[1], z: new_dim[2] });
-        for x in 0..new_dim[0] {
-            for y in 0..new_dim[1] {
-                for z in 0..new_dim[2] {
+        for x in 0..current_dim[0] {
+            for y in 0..current_dim[1] {
+                for z in 0..current_dim[2] {
                     let pos = [x, y, z];
-                    let orig_pos = Coord {
-                        x: if rot.origin[0] >= 0 { pos[rot.origin[0] as usize] } else { new_dim[0] - pos[rot.origin[0] as usize] - 1 },
-                        y: if rot.origin[1] >= 0 { pos[rot.origin[1] as usize] } else { new_dim[1] - pos[rot.origin[1] as usize] - 1 },
-                        z: if rot.origin[2] >= 0 { pos[rot.origin[2] as usize] } else { new_dim[2] - pos[rot.origin[2] as usize] - 1 },
+                    let new_pos = Coord {
+                        x: if rot.origin[0] >= 0 { pos[rot.origin[0] as usize] } else { new_dim[0] - pos[!rot.origin[0] as usize] - 1 },
+                        y: if rot.origin[1] >= 0 { pos[rot.origin[1] as usize] } else { new_dim[1] - pos[!rot.origin[1] as usize] - 1 },
+                        z: if rot.origin[2] >= 0 { pos[rot.origin[2] as usize] } else { new_dim[2] - pos[!rot.origin[2] as usize] - 1 },
                     };
-                    ret.set(Coord { x, y, z }, self.get(orig_pos));
+                    ret.set(new_pos, self.get(Coord { x, y, z }));
                 }
             }
         }
