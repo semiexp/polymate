@@ -14,13 +14,9 @@ impl Dictionary {
         let target_size = target.size();
 
         let mut n_target_cells = 0;
-        for x in 0..target_size.x {
-            for y in 0..target_size.y {
-                for z in 0..target_size.z {
-                    if target.get(Coord { x, y, z }) {
-                        n_target_cells += 1;
-                    }
-                }
+        for cd in target_size {
+            if target.get(cd) {
+                n_target_cells += 1;
             }
         }
 
@@ -57,17 +53,12 @@ impl Dictionary {
 
                 if p_size.x > target_size.x || p_size.y > target_size.y || p_size.z > target_size.z { continue; }
 
-                for x in 0..(target_size.x - p_size.x + 1) {
-                    for y in 0..(target_size.y - p_size.y + 1) {
-                        for z in 0..(target_size.z - p_size.z + 1) {
-                            let offset = Coord { x, y, z };
-                            if target.is_fit(p, offset) {
-                                let mask = target.get_piece_mask(p, offset);
-                                let handle = mask.trailing_zeros();
+                for offset in (target_size - p_size + Coord { x: 1, y: 1, z: 1 }) {
+                    if target.is_fit(p, offset) {
+                        let mask = target.get_piece_mask(p, offset);
+                        let handle = mask.trailing_zeros();
 
-                                placements[handle as usize][i].push(mask);
-                            }
-                        }
+                        placements[handle as usize][i].push(mask);
                     }
                 }
             }

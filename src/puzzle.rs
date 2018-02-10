@@ -206,32 +206,23 @@ impl Shape {
         ];
 
         let mut ret = Shape::new(Coord { x: new_dim[0], y: new_dim[1], z: new_dim[2] });
-        for x in 0..current_dim[0] {
-            for y in 0..current_dim[1] {
-                for z in 0..current_dim[2] {
-                    let pos = [x, y, z];
-                    let new_pos = Coord {
-                        x: if rot.origin[0] >= 0 { pos[rot.origin[0] as usize] } else { new_dim[0] - pos[!rot.origin[0] as usize] - 1 },
-                        y: if rot.origin[1] >= 0 { pos[rot.origin[1] as usize] } else { new_dim[1] - pos[!rot.origin[1] as usize] - 1 },
-                        z: if rot.origin[2] >= 0 { pos[rot.origin[2] as usize] } else { new_dim[2] - pos[!rot.origin[2] as usize] - 1 },
-                    };
-                    ret.set(new_pos, self.get(Coord { x, y, z }));
-                }
-            }
+        for cd in size {
+            let pos = [cd.x, cd.y, cd.z];
+            let new_pos = Coord {
+                x: if rot.origin[0] >= 0 { pos[rot.origin[0] as usize] } else { new_dim[0] - pos[!rot.origin[0] as usize] - 1 },
+                y: if rot.origin[1] >= 0 { pos[rot.origin[1] as usize] } else { new_dim[1] - pos[!rot.origin[1] as usize] - 1 },
+                z: if rot.origin[2] >= 0 { pos[rot.origin[2] as usize] } else { new_dim[2] - pos[!rot.origin[2] as usize] - 1 },
+            };
+            ret.set(new_pos, self.get(cd));
         }
 
         ret
     }
     pub fn is_fit(&self, piece: &Shape, offset: Coord) -> bool {
         let piece_size = piece.size();
-        for x in 0..piece_size.x {
-            for y in 0..piece_size.y {
-                for z in 0..piece_size.z {
-                    let cd = Coord { x, y, z };
-                    if piece.get(cd) && !self.get(cd + offset) {
-                        return false;
-                    }
-                }
+        for cd in piece_size {
+            if piece.get(cd) && !self.get(cd + offset) {
+                return false;
             }
         }
         true
@@ -240,20 +231,15 @@ impl Shape {
         let piece_size = piece.size();
         let mut counter = 0u64;
         let mut ret = 0u64;
-        for x in 0..self.size.x {
-            for y in 0..self.size.y {
-                for z in 0..self.size.z {
-                    let cd = Coord { x, y, z };
-                    if self.get(cd) {
-                        let piece_cd = cd - offset;
-                        if 0 <= piece_cd.x && piece_cd.x < piece_size.x && 0 <= piece_cd.y && piece_cd.y < piece_size.y && 0 <= piece_cd.z && piece_cd.z < piece_size.z {
-                            if piece.get(piece_cd) {
-                                ret |= 1u64 << counter;
-                            }
-                        }
-                        counter += 1;
+        for cd in self.size {
+            if self.get(cd) {
+                let piece_cd = cd - offset;
+                if 0 <= piece_cd.x && piece_cd.x < piece_size.x && 0 <= piece_cd.y && piece_cd.y < piece_size.y && 0 <= piece_cd.z && piece_cd.z < piece_size.z {
+                    if piece.get(piece_cd) {
+                        ret |= 1u64 << counter;
                     }
                 }
+                counter += 1;
             }
         }
         ret
