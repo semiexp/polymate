@@ -1,4 +1,5 @@
 use std::ops::{Add, Sub};
+use std::iter::IntoIterator;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Coord {
@@ -25,6 +26,45 @@ impl Sub<Coord> for Coord {
             x: self.x - other.x,
             y: self.y - other.y,
             z: self.z - other.z,
+        }
+    }
+}
+
+impl IntoIterator for Coord {
+    type Item = Coord;
+    type IntoIter = CoordIterator;
+
+    fn into_iter(self) -> CoordIterator {
+        CoordIterator {
+            current: Coord { x: 0, y: 0, z: 0 },
+            limit: self,
+        }
+    }
+}
+
+pub struct CoordIterator {
+    current: Coord,
+    limit: Coord,
+}
+
+impl Iterator for CoordIterator {
+    type Item = Coord;
+
+    fn next(&mut self) -> Option<Coord> {
+        if self.current.x >= self.limit.x {
+            None
+        } else {
+            let ret = self.current;
+            self.current.z += 1;
+            if self.current.z >= self.limit.z {
+                self.current.z -= self.limit.z;
+                self.current.y += 1;
+                if self.current.y >= self.limit.y {
+                    self.current.y -= self.limit.y;
+                    self.current.x += 1;
+                }
+            }
+            Some(ret)
         }
     }
 }
