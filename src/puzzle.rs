@@ -136,6 +136,12 @@ impl Shape {
             data: vec![false; (size.x * size.y * size.z) as usize],
         }
     }
+    pub fn filled(size: Coord) -> Shape {
+        Shape {
+            size,
+            data: vec![true; (size.x * size.y * size.z) as usize],
+        }
+    }
     pub fn size(&self) -> Coord {
         self.size
     }
