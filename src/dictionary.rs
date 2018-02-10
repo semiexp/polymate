@@ -1,5 +1,4 @@
 use super::*;
-use ::std::iter::Iterator;
 
 pub struct Dictionary {
     pub n_target_cells: i32,
