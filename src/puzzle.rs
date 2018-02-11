@@ -160,7 +160,7 @@ pub const ROTATIONS: [Rotation; 24] = [
     Rotation { origin: [2, 1, !0] },
     Rotation { origin: [2, !1, 0] },
     Rotation { origin: [!2, 1, 0] },
-    Rotation { origin: [!2, !1, 0] },
+    Rotation { origin: [!2, !1, !0] },
 ];
 
 #[derive(PartialEq, Eq)]
