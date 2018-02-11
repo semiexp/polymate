@@ -6,15 +6,12 @@ pub fn solve(problem: &Puzzle) -> u64 {
 
     let mut rem_piece = dic.piece_count.clone();
 
-    search(&dic, &mut rem_piece, 0, 0u64)
+    search(&dic, &mut rem_piece, 0u64)
 }
 
-fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, pos: i32, mask: u64) -> u64 {
-    let mut pos = pos;
-    while pos < dic.n_target_cells && ((mask >> (pos as u64)) & 1) == 1 {
-        pos += 1;
-    }
-
+fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, mask: u64) -> u64 {
+    let pos = (!mask).trailing_zeros() as i32;
+    
     if pos == dic.n_target_cells {
         return 1u64;
     }
@@ -26,7 +23,7 @@ fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, pos: i32, mask: u64) -> u6
             rem_piece[i] -= 1;
             for m in &dic.placements[pos as usize][i] {
                 if (mask & m) == 0 {
-                    ret += search(dic, rem_piece, pos + 1, mask | m);
+                    ret += search(dic, rem_piece, mask | m);
                 }
             }
             rem_piece[i] += 1;
