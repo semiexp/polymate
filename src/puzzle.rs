@@ -182,6 +182,19 @@ impl Shape {
             data: vec![true; (size.x * size.y * size.z) as usize],
         }
     }
+    pub fn from_grid(grid: &[&'static str]) -> Shape {
+        let width = grid[0].len() as i32;
+        let height = grid.len() as i32;
+        let mut ret = Shape::new(Coord { x: width, y: height, z: 1 });
+
+        for y in 0..height {
+            let mut it = grid[y as usize].chars();
+            for x in 0..width {
+                ret.set(Coord { x, y, z: 0 }, it.next() == Some('#'));
+            }
+        }
+        ret
+    }
     pub fn size(&self) -> Coord {
         self.size
     }
