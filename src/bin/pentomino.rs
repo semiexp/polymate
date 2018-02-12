@@ -1,7 +1,8 @@
-use super::*;
+extern crate polymate;
+use polymate::*;
+use std::time::Instant;
 
-#[test]
-fn test_pentomino() {
+fn main() {
     let pieces_base = vec![
         vec![
             "#####",
@@ -62,6 +63,9 @@ fn test_pentomino() {
 
     let problem = Puzzle { pieces, target };
 
+    let start = Instant::now();
     let n_sol = solve(&problem);
-    assert_eq!(n_sol, 4 * 2339);
+    let end = start.elapsed();
+    
+    println!("Solution: {} (Cost: {}.{:03}[s])", n_sol, end.as_secs(), end.subsec_nanos() / 1000000);
 }
