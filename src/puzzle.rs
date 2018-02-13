@@ -3,7 +3,7 @@ use super::*;
 use std::ops::{Add, Sub};
 use std::iter::IntoIterator;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Coord {
     pub x: i32,
     pub y: i32,
