@@ -1,3 +1,5 @@
+use super::*;
+
 use std::ops::{Add, Sub};
 use std::iter::IntoIterator;
 
@@ -69,100 +71,6 @@ impl Iterator for CoordIterator {
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct Rotation {
-    origin: [i32; 3],
-}
-
-impl Rotation {
-    pub fn id() -> Rotation {
-        Rotation {
-            origin: [0, 1, 2]
-        }
-    }
-    pub fn flip_x(&self) -> Rotation {
-        Rotation {
-            origin: [
-                !self.origin[0],
-                self.origin[1],
-                self.origin[2],
-            ]
-        }
-    }
-    pub fn flip_y(&self) -> Rotation {
-        Rotation {
-            origin: [
-                self.origin[0],
-                !self.origin[1],
-                self.origin[2],
-            ]
-        }
-    }
-    pub fn flip_z(&self) -> Rotation {
-        Rotation {
-            origin: [
-                self.origin[0],
-                self.origin[1],
-                !self.origin[2],
-            ]
-        }
-    }
-    pub fn rotate_x_axis(&self) -> Rotation {
-        Rotation {
-            origin: [
-                self.origin[0],
-                self.origin[2],
-                !self.origin[1],
-            ]
-        }
-    }
-    pub fn rotate_y_axis(&self) -> Rotation {
-        Rotation {
-            origin: [
-                !self.origin[2],
-                self.origin[1],
-                self.origin[0],
-            ]
-        }
-    }
-    pub fn rotate_z_axis(&self) -> Rotation {
-        Rotation {
-            origin: [
-                self.origin[1],
-                !self.origin[0],
-                self.origin[2],
-            ]
-        }
-    }
-}
-
-pub const ROTATIONS: [Rotation; 24] = [
-    Rotation { origin: [0, 1, 2] },
-    Rotation { origin: [0, !1, !2] },
-    Rotation { origin: [!0, !1, 2] },
-    Rotation { origin: [!0, 1, !2] },
-    Rotation { origin: [1, 2, 0] },
-    Rotation { origin: [1, !2, !0] },
-    Rotation { origin: [!1, !2, 0] },
-    Rotation { origin: [!1, 2, !0] },
-    Rotation { origin: [2, 0, 1] },
-    Rotation { origin: [2, !0, !1] },
-    Rotation { origin: [!2, !0, 1] },
-    Rotation { origin: [!2, 0, !1] },
-    Rotation { origin: [0, 2, !1] },
-    Rotation { origin: [0, !2, 1] },
-    Rotation { origin: [!0, 2, 1] },
-    Rotation { origin: [!0, !2, !1] },
-    Rotation { origin: [1, 0, !2] },
-    Rotation { origin: [1, !0, 2] },
-    Rotation { origin: [!1, 0, 2] },
-    Rotation { origin: [!1, !0, !2] },
-    Rotation { origin: [2, 1, !0] },
-    Rotation { origin: [2, !1, 0] },
-    Rotation { origin: [!2, 1, 0] },
-    Rotation { origin: [!2, !1, !0] },
-];
-
 #[derive(PartialEq, Eq)]
 pub struct Shape {
     size: Coord,
@@ -210,23 +118,10 @@ impl Shape {
     }
     pub fn rotate(&self, rot: &Rotation) -> Shape {
         let size = self.size;
-        let current_dim = [size.x, size.y, size.z];
+        let mut ret = Shape::new(rot.rotate_rect(size));
 
-        let new_dim = [
-            current_dim[if rot.origin[0] >= 0 { rot.origin[0] } else { (!rot.origin[0]) } as usize],
-            current_dim[if rot.origin[1] >= 0 { rot.origin[1] } else { (!rot.origin[1]) } as usize],
-            current_dim[if rot.origin[2] >= 0 { rot.origin[2] } else { (!rot.origin[2]) } as usize],
-        ];
-
-        let mut ret = Shape::new(Coord { x: new_dim[0], y: new_dim[1], z: new_dim[2] });
         for cd in size {
-            let pos = [cd.x, cd.y, cd.z];
-            let new_pos = Coord {
-                x: if rot.origin[0] >= 0 { pos[rot.origin[0] as usize] } else { new_dim[0] - pos[!rot.origin[0] as usize] - 1 },
-                y: if rot.origin[1] >= 0 { pos[rot.origin[1] as usize] } else { new_dim[1] - pos[!rot.origin[1] as usize] - 1 },
-                z: if rot.origin[2] >= 0 { pos[rot.origin[2] as usize] } else { new_dim[2] - pos[!rot.origin[2] as usize] - 1 },
-            };
-            ret.set(new_pos, self.get(cd));
+            ret.set(rot.rotate_point(cd, size), self.get(cd));
         }
 
         ret
