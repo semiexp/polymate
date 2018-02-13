@@ -111,3 +111,20 @@ pub const ROTATIONS: [Rotation; 24] = [
     Rotation { origin: [!2, !1, !0] },
 ];
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rotation() {
+        assert_eq!(Rotation::id().rotate_rect(Coord { x: 1, y: 2, z: 3 }), Coord { x: 1, y: 2, z: 3 });
+        assert_eq!(
+            Rotation { origin: [1, !2, 0] }.rotate_rect(Coord { x: 2, y: 3, z: 4 }),
+            Coord { x: 3, y: 4, z: 2 }
+        );
+        assert_eq!(
+            Rotation { origin: [1, !2, 0] }.rotate_point(Coord { x: 0, y: 1, z: 3 }, Coord { x: 2, y: 3, z: 4 }),
+            Coord { x: 1, y: 0, z: 0 }
+        );
+    }
+}
