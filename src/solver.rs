@@ -20,8 +20,14 @@ fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32,
     if pos == dic.n_target_cells {
         // save answer
         answers.count += 1;
-        answers.answer.push(Answer::from_answer(dic, answer_raw));
 
+        let save = match answers.save_limit {
+            Some(lim) => answers.count <= lim as u64,
+            None => true,
+        };
+        if save {
+            answers.answer.push(Answer::from_answer(dic, answer_raw));
+        }
         return;
     }
 
