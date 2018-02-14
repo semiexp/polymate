@@ -4,6 +4,8 @@ pub struct Dictionary {
     pub n_target_cells: i32,
     pub piece_count: Vec<i32>,
     pub placements: Vec<Vec<Vec<u64>>>, // cell, piece, orientation
+    pub target: Shape,
+    pub id_to_coord: Vec<Coord>,
 }
 
 impl Dictionary {
@@ -22,6 +24,13 @@ impl Dictionary {
 
         if n_target_cells > 64 { unimplemented!(); }
 
+        let mut id_to_coord = vec![];
+        for cd in target_size {
+            if target.get(cd) {
+                id_to_coord.push(cd);
+            }
+        }
+        
         let mut placements = vec![vec![vec![]; n_pieces as usize]; n_target_cells as usize];
 
         for i in 0..n_pieces {
@@ -69,6 +78,8 @@ impl Dictionary {
             n_target_cells,
             piece_count,
             placements,
+            target: problem.target.clone(),
+            id_to_coord,
         }
     }
 }

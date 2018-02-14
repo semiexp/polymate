@@ -64,8 +64,16 @@ fn main() {
     let problem = Puzzle { pieces, target };
 
     let start = Instant::now();
-    let n_sol = solve(&problem);
+    let ans = solve(&problem);
     let end = start.elapsed();
     
-    println!("Solution: {} (Cost: {}.{:03}[s])", n_sol, end.as_secs(), end.subsec_nanos() / 1000000);
+    println!("Solution: {} (Cost: {}.{:03}[s])", ans.count, end.as_secs(), end.subsec_nanos() / 1000000);
+    println!("First answer:");
+    let ans1 = &ans.answer[0];
+    for y in 0..ans1.size().y {
+        for x in 0..ans1.size().x {
+            print!("{:2} ", ans1[Coord { x, y, z: 0 }].0);
+        }
+        println!();
+    }
 }
