@@ -3,7 +3,7 @@ use super::*;
 use std::ops::{Add, Sub};
 use std::iter::IntoIterator;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Coord {
     pub x: i32,
     pub y: i32,
@@ -71,7 +71,7 @@ impl Iterator for CoordIterator {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Shape {
     size: Coord,
     data: Vec<bool>,
