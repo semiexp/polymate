@@ -116,12 +116,12 @@ impl Shape {
         let cd = self.coord(c);
         self.data[cd] = v;
     }
-    pub fn rotate(&self, rot: &Rotation) -> Shape {
+    pub fn trans(&self, rot: &Transformation) -> Shape {
         let size = self.size;
-        let mut ret = Shape::new(rot.rotate_rect(size));
+        let mut ret = Shape::new(rot.trans_rect(size));
 
         for cd in size {
-            ret.set(rot.rotate_point(cd, size), self.get(cd));
+            ret.set(rot.trans_point(cd, size), self.get(cd));
         }
 
         ret

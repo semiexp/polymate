@@ -1,9 +1,9 @@
 mod puzzle;
-mod rotation;
+mod trans;
 mod dictionary;
 mod solver;
 
 pub use puzzle::*;
-pub use rotation::*;
+pub use trans::*;
 pub use dictionary::*;
 pub use solver::*;
