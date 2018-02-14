@@ -71,7 +71,7 @@ impl Iterator for CoordIterator {
     }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Shape {
     size: Coord,
     data: Vec<bool>,
