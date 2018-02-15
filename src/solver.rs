@@ -2,14 +2,25 @@ use super::*;
 
 // just counting # of answers
 pub fn solve(problem: &Puzzle) -> Answers {
-    let dic = Dictionary::new(problem);
+    let mut dic = Dictionary::new(problem);
 
     let mut rem_piece = dic.piece_count.clone();
     let mut answer_raw = vec![(-1, -1); dic.n_target_cells as usize];
 
     let mut answers = Answers::new();
     
-    search(&dic, &mut rem_piece, &mut answer_raw, 0u64, &mut answers);
+    rem_piece[dic.special_piece_id as usize] -= 1;
+    for i in 0..dic.special_piece_placements_id.len() {
+        dic.target_symmetry = dic.special_piece_symmetry[i];
+        let id = dic.special_piece_placements_id[i];
+        answer_raw[id.0 as usize] = (dic.special_piece_id as i32, id.1);
+
+        search(&dic, &mut rem_piece, &mut answer_raw, dic.placements[id.0 as usize][dic.special_piece_id][id.1 as usize], &mut answers);
+
+        answer_raw[id.0 as usize] = (-1, -1);
+    }
+
+    //search(&dic, &mut rem_piece, &mut answer_raw, 0u64, &mut answers);
 
     answers
 }
