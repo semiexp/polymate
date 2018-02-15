@@ -116,7 +116,7 @@ impl Shape {
         let cd = self.coord(c);
         self.data[cd] = v;
     }
-    pub fn trans(&self, rot: &Transformation) -> Shape {
+    pub fn trans(&self, rot: Transformation) -> Shape {
         let size = self.size;
         let mut ret = Shape::new(rot.trans_rect(size));
 

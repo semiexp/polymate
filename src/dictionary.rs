@@ -38,7 +38,7 @@ impl Dictionary {
 
             // compute unique rotation patterns
             let mut rots = vec![];
-            for rot in &ROTATIONS {
+            for &rot in &ROTATIONS {
                 let piece_rot = piece.trans(rot);
 
                 // is unique?
