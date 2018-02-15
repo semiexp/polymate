@@ -8,7 +8,7 @@ pub fn solve(problem: &Puzzle) -> Answers {
     let mut answer_raw = vec![(-1, -1); dic.n_target_cells as usize];
 
     let mut answers = Answers::new();
-
+    
     search(&dic, &mut rem_piece, &mut answer_raw, 0u64, &mut answers);
 
     answers
@@ -18,6 +18,18 @@ fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32,
     let pos = (!mask).trailing_zeros() as i32;
 
     if pos == dic.n_target_cells {
+        // check for uniqueness
+        let answer = Answer::from_answer(dic, answer_raw);
+
+        for i in 1..24 {
+            if (dic.target_symmetry & (1u64 << i)) != 0 {
+                let answer_rot = answer.trans(ROTATIONS[i]);
+                if answer > answer_rot {
+                    return;
+                }
+            }
+        }
+
         // save answer
         answers.count += 1;
 
@@ -26,7 +38,7 @@ fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32,
             None => true,
         };
         if save {
-            answers.answer.push(Answer::from_answer(dic, answer_raw));
+            answers.answer.push(answer);
         }
         return;
     }

@@ -152,6 +152,15 @@ impl Shape {
         }
         ret
     }
+    pub fn symmetry(&self) -> Symmetry {
+        let mut ret = 1u64;
+        for i in 1..24 {
+            if *self == self.trans(ROTATIONS[i]) {
+                ret |= 1u64 << i;
+            }
+        }
+        ret
+    }
 }
 
 pub struct Puzzle {

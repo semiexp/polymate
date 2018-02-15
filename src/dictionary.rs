@@ -5,6 +5,7 @@ pub struct Dictionary {
     pub piece_count: Vec<i32>,
     pub placements: Vec<Vec<Vec<u64>>>, // cell, piece, orientation
     pub target: Shape,
+    pub target_symmetry: Symmetry,
     pub id_to_coord: Vec<Coord>,
 }
 
@@ -79,6 +80,7 @@ impl Dictionary {
             piece_count,
             placements,
             target: problem.target.clone(),
+            target_symmetry: problem.target.symmetry(),
             id_to_coord,
         }
     }

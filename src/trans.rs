@@ -126,6 +126,8 @@ pub const ROTATIONS: [Transformation; 24] = [
     Transformation { origin: [!2, !1, !0] },
 ];
 
+pub type Symmetry = u64;
+
 #[cfg(test)]
 mod tests {
     use super::*;
