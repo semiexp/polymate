@@ -41,6 +41,28 @@ fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32,
             }
         }
 
+        // check for mirror flips?
+        let mut is_mirror_ok = true;
+        for i in 0..rem_piece.len() {
+            let n_used = dic.piece_count[i] - rem_piece[i];
+            if dic.mirror_pair[i] == -1 || dic.piece_count[dic.mirror_pair[i] as usize] < n_used {
+                is_mirror_ok = false;
+                break;
+            }
+        }
+
+        if is_mirror_ok {
+            for i in 24..48 {
+                if (dic.target_symmetry & (1u64 << i)) != 0 {
+                    let mut answer_rot = answer.trans(TRANSFORMATIONS[i]);
+                    answer_rot.mirror(&dic.mirror_pair);
+                    if answer > answer_rot {
+                        return;
+                    }
+                }
+            }
+        }
+
         // save answer
         answers.count += 1;
 

@@ -53,6 +53,11 @@ impl Answer {
         }
         ret
     }
+    pub fn mirror(&mut self, mirror_pair: &Vec<i32>) {
+        for d in &mut self.data {
+            d.0 = mirror_pair[d.0 as usize];
+        }
+    }
 }
 
 impl Index<Coord> for Answer {

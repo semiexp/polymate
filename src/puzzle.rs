@@ -154,9 +154,19 @@ impl Shape {
     }
     pub fn symmetry(&self) -> Symmetry {
         let mut ret = 1u64;
-        for i in 1..24 {
-            if *self == self.trans(ROTATIONS[i]) {
+        for i in 1..48 {
+            if *self == self.trans(TRANSFORMATIONS[i]) {
                 ret |= 1u64 << i;
+            }
+        }
+        ret
+    }
+    pub fn canonize(&self) -> Shape {
+        let mut ret = self.clone();
+        for i in 1..24 {
+            let cand = self.trans(ROTATIONS[i]);
+            if cand < ret {
+                ret = cand;
             }
         }
         ret

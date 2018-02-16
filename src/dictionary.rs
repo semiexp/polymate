@@ -14,6 +14,8 @@ pub struct Dictionary {
     pub special_piece_id: usize,
     pub special_piece_placements_id: Vec<(i32, i32)>, // specifies the entry index in `placements`
     pub special_piece_symmetry: Vec<Symmetry>, // symmetry after putting the special piece
+
+    pub mirror_pair: Vec<i32>,
 }
 
 impl Dictionary {
@@ -32,6 +34,25 @@ impl Dictionary {
         }
 
         if n_target_cells > 64 { unimplemented!(); }
+
+        let mut piece_canonical = vec![];
+        for i in 0..n_pieces {
+            let p = problem.pieces[i].0.canonize();
+            let mp = problem.pieces[i].0.trans(Transformation::id().flip_x()).canonize();
+
+            piece_canonical.push((p, mp));
+        }
+        let mut mirror_pair = vec![];
+        for i in 0..n_pieces {
+            let mut pair = -1;
+            for j in 0..n_pieces {
+                if piece_canonical[i].1 == piece_canonical[j].0 {
+                    pair = j as i32;
+                    break;
+                }
+            }
+            mirror_pair.push(pair);
+        }
 
         let mut id_to_coord = vec![];
         for cd in target_size {
@@ -99,9 +120,9 @@ impl Dictionary {
 
                 let mut sym = 1u64;
                 let mut isok = true;
-                for s in 1..24 {
+                for s in 1..48 {
                     if (target_symmetry & (1u64 << s)) != 0 {
-                        let rot_field = target_with_special.trans(ROTATIONS[s]);
+                        let rot_field = target_with_special.trans(TRANSFORMATIONS[s]);
                         match target_with_special.cmp(&rot_field) {
                             Ordering::Less => (),
                             Ordering::Equal => sym |= 1u64 << s,
@@ -131,6 +152,7 @@ impl Dictionary {
             special_piece_id,
             special_piece_placements_id,
             special_piece_symmetry,
+            mirror_pair,
         }
     }
 }
