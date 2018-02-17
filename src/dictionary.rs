@@ -11,7 +11,7 @@ pub struct Dictionary {
     pub id_to_coord: Vec<Coord>,
 
     // about the special piece for uniqueneess
-    pub special_piece_id: usize,
+    pub special_piece_id: Option<usize>,
     pub special_piece_placements_id: Vec<(i32, i32)>, // specifies the entry index in `placements`
     pub special_piece_symmetry: Vec<Symmetry>, // symmetry after putting the special piece
 
@@ -104,39 +104,65 @@ impl Dictionary {
         }
 
         // handle the special piece
-        let special_piece_id = 0;
+        let mut total_piece_volume = 0;
+        for i in 0..n_pieces {
+            total_piece_volume += problem.pieces[i].0.volume() * problem.pieces[i].1;
+        }
+        let use_all_pieces = total_piece_volume == target.volume();
+
+        let mut special_piece_id = None;
+
+        if use_all_pieces {
+            for i in 0..n_pieces {
+                // special piece must be achiral
+                if mirror_pair[i] != i as i32 {
+                    continue;
+                }
+
+                // special piece must be used only once
+                if problem.pieces[i].1 > 1 {
+                    continue;
+                }
+
+                special_piece_id = Some(i);
+                break;
+            }
+        }
+
         let mut special_piece_placements_id = vec![];
         let mut special_piece_symmetry = vec![];
 
-        for i in 0..(n_target_cells as usize) {
-            for j in 0..placements[i][special_piece_id].len() {
-                let mut target_with_special = target.clone();
-                let mut pl = placements[i][special_piece_id][j];
-                while pl != 0 {
-                    let id = pl.trailing_zeros();
-                    pl ^= 1u64 << id;
-                    target_with_special.set(id_to_coord[id as usize], false);
-                }
+        if let Some(special_piece_id) = special_piece_id {
+            for i in 0..(n_target_cells as usize) {
+                for j in 0..placements[i][special_piece_id].len() {
+                    let mut target_with_special = target.clone();
+                    let mut pl = placements[i][special_piece_id][j];
+                    while pl != 0 {
+                        let id = pl.trailing_zeros();
+                        pl ^= 1u64 << id;
+                        target_with_special.set(id_to_coord[id as usize], false);
+                    }
 
-                let mut sym = 1u64;
-                let mut isok = true;
-                for s in 1..48 {
-                    if (target_symmetry & (1u64 << s)) != 0 {
-                        let rot_field = target_with_special.trans(TRANSFORMATIONS[s]);
-                        match target_with_special.cmp(&rot_field) {
-                            Ordering::Less => (),
-                            Ordering::Equal => sym |= 1u64 << s,
-                            Ordering::Greater => {
-                                isok = false;
-                                break;
-                            },
+                    let mut sym = 1u64;
+                    let mut isok = true;
+                    for s in 1..48 {
+                        if (target_symmetry & (1u64 << s)) != 0 {
+                            let rot_field = target_with_special.trans(TRANSFORMATIONS[s]);
+                            match target_with_special.cmp(&rot_field) {
+                                Ordering::Less => (),
+                                Ordering::Equal => sym |= 1u64 << s,
+                                Ordering::Greater => {
+                                    isok = false;
+                                    break;
+                                },
+                            }
                         }
                     }
-                }
 
-                if isok {
-                    special_piece_placements_id.push((i as i32, j as i32));
-                    special_piece_symmetry.push(sym);
+                    if isok {
+                        special_piece_placements_id.push((i as i32, j as i32));
+                        special_piece_symmetry.push(sym);
+                    }
                 }
             }
         }

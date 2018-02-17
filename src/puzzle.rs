@@ -116,6 +116,13 @@ impl Shape {
         let cd = self.coord(c);
         self.data[cd] = v;
     }
+    pub fn volume(&self) -> i32 {
+        let mut ret = 0;
+        for &v in &self.data {
+            if v { ret += 1; }
+        }
+        ret
+    }
     pub fn trans(&self, rot: Transformation) -> Shape {
         let size = self.size;
         let mut ret = Shape::new(rot.trans_rect(size));
