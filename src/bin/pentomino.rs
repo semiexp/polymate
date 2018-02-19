@@ -5,6 +5,11 @@ use std::time::Instant;
 fn main() {
     let pieces_base = vec![
         vec![
+            ".#.",
+            "###",
+            ".#.",
+        ],
+        vec![
             "#####",
         ],
         vec![
@@ -45,11 +50,6 @@ fn main() {
         vec![
             ".##",
             "##.",
-            ".#.",
-        ],
-        vec![
-            ".#.",
-            "###",
             ".#.",
         ],
         vec![
