@@ -68,6 +68,7 @@ fn main() {
     let end = start.elapsed();
     
     println!("Solution: {} (Cost: {}.{:03}[s])", ans.count, end.as_secs(), end.subsec_nanos() / 1000000);
+    println!("Steps: {}", ans.search_steps);
     println!("First answer:");
     let ans1 = &ans.answer[0];
     for y in 0..ans1.size().y {

@@ -84,6 +84,7 @@ fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32,
             let pl = unsafe { dic.placements.get_unchecked(pos as usize).get_unchecked(i) };
             for j in 0..pl.len() {
                 let m = unsafe { *pl.get_unchecked(j) };
+                answers.search_steps += 1;
                 if (mask & m) == 0 {
                     unsafe { *answer_raw.get_unchecked_mut(pos as usize) = (i as i32, j as i32); }
                     search(dic, rem_piece, answer_raw, mask | m, answers);

@@ -79,6 +79,7 @@ pub struct Answers {
     pub answer: Vec<Answer>,
     pub count: u64,
     pub save_limit: Option<usize>,
+    pub search_steps: u64,
 }
 
 impl Answers {
@@ -87,6 +88,7 @@ impl Answers {
             answer: vec![],
             count: 0u64,
             save_limit: None,
+            search_steps: 0u64,
         }
     }
 }
