@@ -9,19 +9,19 @@ pub fn solve(problem: &Puzzle) -> Answers {
 
     let mut answers = Answers::new();
     
-    if let Some(special_piece_id) = dic.special_piece_id {
-        rem_piece[special_piece_id] -= 1;
-        for i in 0..dic.special_piece_placements_id.len() {
-            dic.target_symmetry = dic.special_piece_symmetry[i];
-            let id = dic.special_piece_placements_id[i];
-            answer_raw[id.0 as usize] = (special_piece_id as i32, id.1);
+    for i in 0..dic.initial_piece_count.len() {
+        rem_piece = dic.initial_piece_count[i].clone();
+        dic.target_symmetry = dic.initial_symmetry[i];
 
-            search(&dic, &mut rem_piece, &mut answer_raw, dic.placements[id.0 as usize][special_piece_id][id.1 as usize], &mut answers);
-
-            answer_raw[id.0 as usize] = (-1, -1);
+        for &(cell, piece, ori) in &dic.initial_placement_id[i] {
+            answer_raw[cell as usize] = (piece, ori);
         }
-    } else {
-        search(&dic, &mut rem_piece, &mut answer_raw, 0u64, &mut answers);
+        
+        search(&dic, &mut rem_piece, &mut answer_raw, dic.initial_placement[i], &mut answers);
+
+        for &(cell, piece, ori) in &dic.initial_placement_id[i] {
+            answer_raw[cell as usize] = (piece, ori);
+        }
     }
 
     answers

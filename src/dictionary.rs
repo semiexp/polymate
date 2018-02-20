@@ -11,9 +11,10 @@ pub struct Dictionary {
     pub id_to_coord: Vec<Coord>,
 
     // about the special piece for uniqueneess
-    pub special_piece_id: Option<usize>,
-    pub special_piece_placements_id: Vec<(i32, i32)>, // specifies the entry index in `placements`
-    pub special_piece_symmetry: Vec<Symmetry>, // symmetry after putting the special piece
+    pub initial_piece_count: Vec<Vec<i32>>,
+    pub initial_placement: Vec<u64>,
+    pub initial_placement_id: Vec<Vec<(i32, i32, i32)>>, // cell, piece, orientation
+    pub initial_symmetry: Vec<Symmetry>,
 
     pub mirror_pair: Vec<i32>,
 }
@@ -21,6 +22,8 @@ pub struct Dictionary {
 impl Dictionary {
     pub fn new(problem: &Puzzle) -> Dictionary {
         let n_pieces = problem.pieces.len();
+
+        let piece_count = problem.pieces.iter().map(|&(_, c)| c).collect::<Vec<i32>>();
 
         let target = &problem.target;
         let target_size = target.size();
@@ -129,8 +132,10 @@ impl Dictionary {
             }
         }
 
-        let mut special_piece_placements_id = vec![];
-        let mut special_piece_symmetry = vec![];
+        let mut initial_piece_count = vec![];
+        let mut initial_placement = vec![];
+        let mut initial_placement_id = vec![];
+        let mut initial_symmetry = vec![];
 
         if let Some(special_piece_id) = special_piece_id {
             for i in 0..(n_target_cells as usize) {
@@ -160,14 +165,23 @@ impl Dictionary {
                     }
 
                     if isok {
-                        special_piece_placements_id.push((i as i32, j as i32));
-                        special_piece_symmetry.push(sym);
+                        let mut count = piece_count.clone();
+                        count[special_piece_id] -= 1;
+
+                        initial_piece_count.push(count);
+                        initial_placement.push(placements[i][special_piece_id][j]);
+                        initial_placement_id.push(vec![(i as i32, special_piece_id as i32, j as i32)]);
+                        initial_symmetry.push(sym);
                     }
                 }
             }
+        } else {
+            initial_piece_count.push(piece_count.clone());
+            initial_placement.push(0u64);
+            initial_placement_id.push(vec![]);
+            initial_symmetry.push(target_symmetry);
         }
 
-        let piece_count = problem.pieces.iter().map(|&(_, c)| c).collect::<Vec<i32>>();
         Dictionary {
             n_target_cells,
             piece_count,
@@ -175,9 +189,12 @@ impl Dictionary {
             target: target.clone(),
             target_symmetry,
             id_to_coord,
-            special_piece_id,
-            special_piece_placements_id,
-            special_piece_symmetry,
+
+            initial_piece_count,
+            initial_placement,
+            initial_placement_id,
+            initial_symmetry,
+
             mirror_pair,
         }
     }
