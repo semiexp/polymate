@@ -4,13 +4,11 @@ use super::*;
 pub fn solve(problem: &Puzzle) -> Answers {
     let mut dic = Dictionary::new(problem);
 
-    let mut rem_piece = dic.piece_count.clone();
     let mut answer_raw = vec![(-1, -1); dic.n_target_cells as usize];
-
     let mut answers = Answers::new();
     
     for i in 0..dic.initial_piece_count.len() {
-        rem_piece = dic.initial_piece_count[i].clone();
+        let mut rem_piece = dic.initial_piece_count[i].clone();
         dic.target_symmetry = dic.initial_symmetry[i];
 
         for &(cell, piece, ori) in &dic.initial_placement_id[i] {
