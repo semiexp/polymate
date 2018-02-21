@@ -18,7 +18,7 @@ pub fn solve(problem: &Puzzle) -> Answers {
         search(&dic, &mut rem_piece, &mut answer_raw, dic.initial_placement[i], &mut answers);
 
         for &(cell, piece, ori) in &dic.initial_placement_id[i] {
-            answer_raw[cell as usize] = (piece, ori);
+            answer_raw[cell as usize] = (-1, -1);
         }
     }
 
