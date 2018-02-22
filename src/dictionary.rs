@@ -132,25 +132,6 @@ impl Dictionary {
                 continue;
             }
         }
-        let mut special_piece_id = None;
-
-        if use_all_pieces {
-            for i in 0..n_pieces {
-                // special piece must be achiral
-                if mirror_pair[i] != i as i32 {
-                    continue;
-                }
-
-                // special piece must be used only once
-                if problem.pieces[i].1 > 1 {
-                    continue;
-                }
-
-                special_piece_id = Some(i);
-                break;
-            }
-        }
-
         while special_piece_cand.len() > 2 {
             special_piece_cand.pop();
         }
