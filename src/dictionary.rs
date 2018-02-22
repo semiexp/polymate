@@ -27,8 +27,16 @@ impl Dictionary {
 
         let target = &problem.target;
         let target_size = target.size();
-        let target_symmetry = target.symmetry();
+        let mut target_symmetry = target.symmetry();
 
+        let mut all_planar = target.is_planar();
+        for i in 0..n_pieces {
+            all_planar &= problem.pieces[i].0.is_planar();
+        }
+
+        if all_planar {
+            target_symmetry &= 0xffffff;
+        }
         let mut n_target_cells = 0;
         for cd in target_size {
             if target.get(cd) {
