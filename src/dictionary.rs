@@ -17,6 +17,18 @@ pub struct Dictionary {
     pub initial_symmetry: Vec<Symmetry>,
 
     pub mirror_pair: Vec<i32>,
+
+    pub isolated_cell_pruning: bool,
+    pub isolated_cell_pruning_x_ofs: u64,
+    pub isolated_cell_pruning_x_mask_lo: u64,
+    pub isolated_cell_pruning_x_mask_hi: u64,
+    pub isolated_cell_pruning_y_ofs: u64,
+    pub isolated_cell_pruning_y_mask_lo: u64,
+    pub isolated_cell_pruning_y_mask_hi: u64,
+    pub isolated_cell_pruning_z_ofs: u64,
+    pub isolated_cell_pruning_z_mask_lo: u64,
+    pub isolated_cell_pruning_z_mask_hi: u64,
+    
 }
 
 impl Dictionary {
@@ -157,6 +169,49 @@ impl Dictionary {
             &mut initial_symmetry
         );
 
+        let mut isolated_cell_pruning = true;
+        let mut isolated_cell_pruning_x_ofs = 0u64;
+        let mut isolated_cell_pruning_x_mask_lo = 0u64;
+        let mut isolated_cell_pruning_x_mask_hi = 0u64;
+        let mut isolated_cell_pruning_y_ofs = 0u64;
+        let mut isolated_cell_pruning_y_mask_lo = 0u64;
+        let mut isolated_cell_pruning_y_mask_hi = 0u64;
+        let mut isolated_cell_pruning_z_ofs = 0u64;
+        let mut isolated_cell_pruning_z_mask_lo = 0u64;
+        let mut isolated_cell_pruning_z_mask_hi = 0u64;
+        
+        for i in 0..n_pieces {
+            if problem.pieces[i].0.volume() == 1 { isolated_cell_pruning = false; }
+        }
+        if target.volume() != (target_size.x * target_size.y * target_size.z) { isolated_cell_pruning = false; }
+
+        if isolated_cell_pruning {
+            isolated_cell_pruning_x_ofs = (target_size.y * target_size.z) as u64;
+            isolated_cell_pruning_y_ofs = target_size.z as u64;
+            isolated_cell_pruning_z_ofs = 1;
+            for cd in target_size {
+                let idx = (cd.x * target_size.y * target_size.z + cd.y * target_size.z + cd.z) as u64;
+                if cd.x == 0 {
+                    isolated_cell_pruning_x_mask_lo |= 1u64 << idx;
+                }
+                if cd.x == target_size.x - 1 {
+                    isolated_cell_pruning_x_mask_hi |= 1u64 << idx;
+                }
+                if cd.y == 0 {
+                    isolated_cell_pruning_y_mask_lo |= 1u64 << idx;
+                }
+                if cd.y == target_size.y - 1 {
+                    isolated_cell_pruning_y_mask_hi |= 1u64 << idx;
+                }
+                if cd.z == 0 {
+                    isolated_cell_pruning_z_mask_lo |= 1u64 << idx;
+                }
+                if cd.z == target_size.z - 1 {
+                    isolated_cell_pruning_z_mask_hi |= 1u64 << idx;
+                }
+            }
+        }
+
         Dictionary {
             n_target_cells,
             piece_count,
@@ -171,6 +226,17 @@ impl Dictionary {
             initial_symmetry,
 
             mirror_pair,
+
+            isolated_cell_pruning,
+            isolated_cell_pruning_x_ofs,
+            isolated_cell_pruning_x_mask_lo,
+            isolated_cell_pruning_x_mask_hi,
+            isolated_cell_pruning_y_ofs,
+            isolated_cell_pruning_y_mask_lo,
+            isolated_cell_pruning_y_mask_hi,
+            isolated_cell_pruning_z_ofs,
+            isolated_cell_pruning_z_mask_lo,
+            isolated_cell_pruning_z_mask_hi,
         }
     }
 

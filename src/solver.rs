@@ -76,6 +76,18 @@ fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32,
         return;
     }
 
+    if dic.isolated_cell_pruning {
+        if (!mask
+         & ((mask << dic.isolated_cell_pruning_x_ofs) | dic.isolated_cell_pruning_x_mask_lo)
+         & ((mask >> dic.isolated_cell_pruning_x_ofs) | dic.isolated_cell_pruning_x_mask_hi)
+         & ((mask << dic.isolated_cell_pruning_y_ofs) | dic.isolated_cell_pruning_y_mask_lo)
+         & ((mask >> dic.isolated_cell_pruning_y_ofs) | dic.isolated_cell_pruning_y_mask_hi)
+         & ((mask << dic.isolated_cell_pruning_z_ofs) | dic.isolated_cell_pruning_z_mask_lo)
+         & ((mask >> dic.isolated_cell_pruning_z_ofs) | dic.isolated_cell_pruning_z_mask_hi)
+        ) != 0 {
+            return;
+        }
+    }
     for i in 0..rem_piece.len() {
         if unsafe { *rem_piece.get_unchecked(i) } > 0 {
             unsafe { *rem_piece.get_unchecked_mut(i) -= 1 };
