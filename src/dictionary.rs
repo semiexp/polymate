@@ -11,9 +11,10 @@ pub struct Dictionary {
     pub id_to_coord: Vec<Coord>,
 
     // about the special piece for uniqueneess
-    pub special_piece_id: Option<usize>,
-    pub special_piece_placements_id: Vec<(i32, i32)>, // specifies the entry index in `placements`
-    pub special_piece_symmetry: Vec<Symmetry>, // symmetry after putting the special piece
+    pub initial_piece_count: Vec<Vec<i32>>,
+    pub initial_placement: Vec<u64>,
+    pub initial_placement_id: Vec<Vec<(i32, i32, i32)>>, // cell, piece, orientation
+    pub initial_symmetry: Vec<Symmetry>,
 
     pub mirror_pair: Vec<i32>,
 }
@@ -22,10 +23,20 @@ impl Dictionary {
     pub fn new(problem: &Puzzle) -> Dictionary {
         let n_pieces = problem.pieces.len();
 
+        let piece_count = problem.pieces.iter().map(|&(_, c)| c).collect::<Vec<i32>>();
+
         let target = &problem.target;
         let target_size = target.size();
-        let target_symmetry = target.symmetry();
+        let mut target_symmetry = target.symmetry();
 
+        let mut all_planar = target.is_planar();
+        for i in 0..n_pieces {
+            all_planar &= problem.pieces[i].0.is_planar();
+        }
+
+        if all_planar {
+            target_symmetry &= 0xffffff;
+        }
         let mut n_target_cells = 0;
         for cd in target_size {
             if target.get(cd) {
@@ -110,64 +121,42 @@ impl Dictionary {
         }
         let use_all_pieces = total_piece_volume == target.volume();
 
-        let mut special_piece_id = None;
-
+        let mut special_piece_cand = vec![];
+        
         if use_all_pieces {
             for i in 0..n_pieces {
-                // special piece must be achiral
-                if mirror_pair[i] != i as i32 {
-                    continue;
-                }
+                if mirror_pair[i] != i as i32 { continue; }
+                if problem.pieces[i].1 > 1 { continue; }
 
-                // special piece must be used only once
-                if problem.pieces[i].1 > 1 {
-                    continue;
-                }
-
-                special_piece_id = Some(i);
-                break;
+                special_piece_cand.push(i);
+                continue;
             }
         }
-
-        let mut special_piece_placements_id = vec![];
-        let mut special_piece_symmetry = vec![];
-
-        if let Some(special_piece_id) = special_piece_id {
-            for i in 0..(n_target_cells as usize) {
-                for j in 0..placements[i][special_piece_id].len() {
-                    let mut target_with_special = target.clone();
-                    let mut pl = placements[i][special_piece_id][j];
-                    while pl != 0 {
-                        let id = pl.trailing_zeros();
-                        pl ^= 1u64 << id;
-                        target_with_special.set(id_to_coord[id as usize], false);
-                    }
-
-                    let mut sym = 1u64;
-                    let mut isok = true;
-                    for s in 1..48 {
-                        if (target_symmetry & (1u64 << s)) != 0 {
-                            let rot_field = target_with_special.trans(TRANSFORMATIONS[s]);
-                            match target_with_special.cmp(&rot_field) {
-                                Ordering::Less => (),
-                                Ordering::Equal => sym |= 1u64 << s,
-                                Ordering::Greater => {
-                                    isok = false;
-                                    break;
-                                },
-                            }
-                        }
-                    }
-
-                    if isok {
-                        special_piece_placements_id.push((i as i32, j as i32));
-                        special_piece_symmetry.push(sym);
-                    }
-                }
-            }
+        while special_piece_cand.len() > 2 {
+            special_piece_cand.pop();
         }
 
-        let piece_count = problem.pieces.iter().map(|&(_, c)| c).collect::<Vec<i32>>();
+        let mut initial_piece_count = vec![];
+        let mut initial_placement = vec![];
+        let mut initial_placement_id = vec![];
+        let mut initial_symmetry = vec![];
+
+        Dictionary::compute_initial_placement(
+            0,
+            &special_piece_cand,
+            &placements,
+            &id_to_coord,
+            &target,
+            &mut piece_count.clone(),
+            0u64,
+            &mut vec![],
+            target_symmetry,
+            &mut initial_piece_count,
+            &mut initial_placement,
+            &mut initial_placement_id,
+            &mut initial_symmetry
+        );
+
         Dictionary {
             n_target_cells,
             piece_count,
@@ -175,10 +164,95 @@ impl Dictionary {
             target: target.clone(),
             target_symmetry,
             id_to_coord,
-            special_piece_id,
-            special_piece_placements_id,
-            special_piece_symmetry,
+
+            initial_piece_count,
+            initial_placement,
+            initial_placement_id,
+            initial_symmetry,
+
             mirror_pair,
         }
+    }
+
+    fn compute_initial_placement(
+        idx: usize,
+        special_piece_cand: &Vec<usize>,
+        placements: &Vec<Vec<Vec<u64>>>,
+        id_to_coord: &Vec<Coord>,
+        current_target: &Shape,
+        current_piece_count: &mut Vec<i32>,
+        current_placement: u64,
+        current_placement_id: &mut Vec<(i32, i32, i32)>,
+        current_symmetry: Symmetry,
+        initial_piece_count: &mut Vec<Vec<i32>>,
+        initial_placement: &mut Vec<u64>,
+        initial_placement_id: &mut Vec<Vec<(i32, i32, i32)>>,
+        initial_symmetry: &mut Vec<Symmetry>,
+    ) {
+        if idx == special_piece_cand.len() || current_symmetry.count_ones() == 1 {
+            initial_piece_count.push(current_piece_count.clone());
+            initial_placement.push(current_placement);
+            initial_placement_id.push(current_placement_id.clone());
+            initial_symmetry.push(current_symmetry);
+            return;
+        }
+
+        let p = special_piece_cand[idx];
+        current_piece_count[p] -= 1;
+
+        for i in 0..placements.len() {
+            for j in 0..placements[i][p].len() {
+                let mut new_target = current_target.clone();
+                let mut pl = placements[i][p][j];
+
+                if (current_placement & pl) != 0 { continue; }
+
+                let new_placement = current_placement | pl;
+
+                while pl != 0 {
+                    let id = pl.trailing_zeros();
+                    pl ^= 1u64 << id;
+                    new_target.set(id_to_coord[id as usize], false);
+                }
+
+                let mut new_symmetry = 1u64;
+                let mut isok = true;
+                for s in 1..48 {
+                    if (current_symmetry & (1u64 << s)) != 0 {
+                        let rot_field = new_target.trans(TRANSFORMATIONS[s]);
+                        match new_target.cmp(&rot_field) {
+                            Ordering::Less => (),
+                            Ordering::Equal => new_symmetry |= 1u64 << s,
+                            Ordering::Greater => {
+                                isok = false;
+                                break;
+                            },
+                        }
+                    }
+                }
+
+                if isok {
+                    current_placement_id.push((i as i32, p as i32, j as i32));
+                    Dictionary::compute_initial_placement(
+                        idx + 1,
+                        special_piece_cand,
+                        placements,
+                        id_to_coord,
+                        &new_target,
+                        current_piece_count,
+                        new_placement,
+                        current_placement_id,
+                        new_symmetry,
+                        initial_piece_count,
+                        initial_placement,
+                        initial_placement_id,
+                        initial_symmetry
+                    );
+                    current_placement_id.pop();
+                }
+            }
+        }
+
+        current_piece_count[p] += 1;
     }
 }

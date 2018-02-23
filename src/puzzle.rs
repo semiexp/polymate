@@ -106,6 +106,9 @@ impl Shape {
     pub fn size(&self) -> Coord {
         self.size
     }
+    pub fn is_planar(&self) -> bool {
+        self.size.x == 1 || self.size.y == 1 || self.size.z == 1
+    }
     fn coord(&self, c: Coord) -> usize {
         ((c.x * self.size.y + c.y) * self.size.z + c.z) as usize
     }
