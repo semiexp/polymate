@@ -2,17 +2,17 @@ use super::*;
 
 use std::cmp::Ordering;
 
-pub struct Dictionary {
+pub struct Dictionary<T: Bits> {
     pub n_target_cells: i32,
     pub piece_count: Vec<i32>,
-    pub placements: Vec<Vec<Vec<u64>>>, // cell, piece, orientation
+    pub placements: Vec<Vec<Vec<T>>>, // cell, piece, orientation
     pub target: Shape,
     pub target_symmetry: Symmetry,
     pub id_to_coord: Vec<Coord>,
 
     // about the special piece for uniqueneess
     pub initial_piece_count: Vec<Vec<i32>>,
-    pub initial_placement: Vec<u64>,
+    pub initial_placement: Vec<T>,
     pub initial_placement_id: Vec<Vec<(i32, i32, i32)>>, // cell, piece, orientation
     pub initial_symmetry: Vec<Symmetry>,
 
@@ -31,8 +31,8 @@ pub struct Dictionary {
     
 }
 
-impl Dictionary {
-    pub fn new(problem: &Puzzle) -> Dictionary {
+impl<T: Bits> Dictionary<T> {
+    pub fn new(problem: &Puzzle) -> Dictionary<T> {
         let n_pieces = problem.pieces.len();
 
         let piece_count = problem.pieces.iter().map(|&(_, c)| c).collect::<Vec<i32>>();
@@ -117,8 +117,8 @@ impl Dictionary {
 
                 for offset in (target_size - p_size + Coord { x: 1, y: 1, z: 1 }) {
                     if target.is_fit(p, offset) {
-                        let mask = target.get_piece_mask(p, offset);
-                        let handle = mask.trailing_zeros();
+                        let mask = target.get_piece_mask::<T>(p, offset);
+                        let handle = mask.lowest_set_bit();
 
                         placements[handle as usize][i].push(mask);
                     }
@@ -153,14 +153,14 @@ impl Dictionary {
         let mut initial_placement_id = vec![];
         let mut initial_symmetry = vec![];
 
-        Dictionary::compute_initial_placement(
+        Dictionary::<T>::compute_initial_placement(
             0,
             &special_piece_cand,
             &placements,
             &id_to_coord,
             &target,
             &mut piece_count.clone(),
-            0u64,
+            &mut T::allocate(n_target_cells),
             &mut vec![],
             target_symmetry,
             &mut initial_piece_count,
@@ -243,21 +243,21 @@ impl Dictionary {
     fn compute_initial_placement(
         idx: usize,
         special_piece_cand: &Vec<usize>,
-        placements: &Vec<Vec<Vec<u64>>>,
+        placements: &Vec<Vec<Vec<T>>>,
         id_to_coord: &Vec<Coord>,
         current_target: &Shape,
         current_piece_count: &mut Vec<i32>,
-        current_placement: u64,
+        current_placement: &mut T,
         current_placement_id: &mut Vec<(i32, i32, i32)>,
         current_symmetry: Symmetry,
         initial_piece_count: &mut Vec<Vec<i32>>,
-        initial_placement: &mut Vec<u64>,
+        initial_placement: &mut Vec<T>,
         initial_placement_id: &mut Vec<Vec<(i32, i32, i32)>>,
         initial_symmetry: &mut Vec<Symmetry>,
     ) {
         if idx == special_piece_cand.len() || current_symmetry.count_ones() == 1 {
             initial_piece_count.push(current_piece_count.clone());
-            initial_placement.push(current_placement);
+            initial_placement.push(current_placement.clone());
             initial_placement_id.push(current_placement_id.clone());
             initial_symmetry.push(current_symmetry);
             return;
@@ -269,15 +269,13 @@ impl Dictionary {
         for i in 0..placements.len() {
             for j in 0..placements[i][p].len() {
                 let mut new_target = current_target.clone();
-                let mut pl = placements[i][p][j];
+                let mut pl = placements[i][p][j].clone();
 
-                if (current_placement & pl) != 0 { continue; }
+                if !current_placement.disjoint(&pl) { continue; }
 
-                let new_placement = current_placement | pl;
-
-                while pl != 0 {
-                    let id = pl.trailing_zeros();
-                    pl ^= 1u64 << id;
+                while !pl.is_empty() {
+                    let id = pl.lowest_set_bit();
+                    pl.unset(id);
                     new_target.set(id_to_coord[id as usize], false);
                 }
 
@@ -298,6 +296,8 @@ impl Dictionary {
                 }
 
                 if isok {
+                    current_placement.update(&placements[i][p][j]);
+
                     current_placement_id.push((i as i32, p as i32, j as i32));
                     Dictionary::compute_initial_placement(
                         idx + 1,
@@ -306,7 +306,7 @@ impl Dictionary {
                         id_to_coord,
                         &new_target,
                         current_piece_count,
-                        new_placement,
+                        current_placement,
                         current_placement_id,
                         new_symmetry,
                         initial_piece_count,
@@ -315,6 +315,8 @@ impl Dictionary {
                         initial_symmetry
                     );
                     current_placement_id.pop();
+
+                    current_placement.update(&placements[i][p][j]);
                 }
             }
         }

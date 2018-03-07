@@ -24,7 +24,7 @@ pub struct ExactCover {
 }
 
 impl ExactCover {
-    pub fn from_dictionary(dic: &Dictionary) -> ExactCover {
+    pub fn from_dictionary(dic: &Dictionary<u64>) -> ExactCover {
         let mut nodes = vec![];
         let mut col_last = vec![];
         let mut column_count = vec![];

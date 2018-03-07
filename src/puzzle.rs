@@ -145,16 +145,16 @@ impl Shape {
         }
         true
     }
-    pub fn get_piece_mask(&self, piece: &Shape, offset: Coord) -> u64 {
+    pub fn get_piece_mask<T: Bits>(&self, piece: &Shape, offset: Coord) -> T {
         let piece_size = piece.size();
-        let mut counter = 0u64;
-        let mut ret = 0u64;
+        let mut counter = 0;
+        let mut ret = T::allocate(self.volume());
         for cd in self.size {
             if self.get(cd) {
                 let piece_cd = cd - offset;
                 if 0 <= piece_cd.x && piece_cd.x < piece_size.x && 0 <= piece_cd.y && piece_cd.y < piece_size.y && 0 <= piece_cd.z && piece_cd.z < piece_size.z {
                     if piece.get(piece_cd) {
-                        ret |= 1u64 << counter;
+                        ret.set(counter);
                     }
                 }
                 counter += 1;

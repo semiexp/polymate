@@ -2,7 +2,7 @@ use super::*;
 
 // just counting # of answers
 pub fn solve(problem: &Puzzle) -> Answers {
-    let mut dic = Dictionary::new(problem);
+    let mut dic = Dictionary::<u64>::new(problem);
 
     let mut answer_raw = vec![(-1, -1); dic.n_target_cells as usize];
     let mut answers = Answers::new();
@@ -25,7 +25,7 @@ pub fn solve(problem: &Puzzle) -> Answers {
     answers
 }
 
-fn search(dic: &Dictionary, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32, i32)>, mask: u64, answers: &mut Answers) {
+fn search(dic: &Dictionary<u64>, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32, i32)>, mask: u64, answers: &mut Answers) {
     let pos = (!mask).trailing_zeros() as i32;
 
     if pos == dic.n_target_cells {

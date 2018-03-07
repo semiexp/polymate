@@ -18,7 +18,7 @@ impl Answer {
             data: vec![UNFILLED; (size.x * size.y * size.z) as usize],
         }
     }
-    pub fn from_answer(dic: &Dictionary, answer_raw: &Vec<(i32, i32)>) -> Answer {
+    pub fn from_answer<T: Bits>(dic: &Dictionary<T>, answer_raw: &Vec<(i32, i32)>) -> Answer {
         let mut n_piece_used = vec![0; dic.piece_count.len()];
         let mut ret = Answer::new(dic.target.size());
 
@@ -26,13 +26,13 @@ impl Answer {
             let (piece, ori) = answer_raw[i as usize];
             if piece == -1 { continue; }
 
-            let mut locs = dic.placements[i as usize][piece as usize][ori as usize];
+            let mut locs = dic.placements[i as usize][piece as usize][ori as usize].clone();
             let pval = (piece, n_piece_used[piece as usize]);
             n_piece_used[piece as usize] += 1;
 
-            while locs != 0 {
-                let j = locs.trailing_zeros();
-                locs ^= 1u64 << (j as u64);
+            while !locs.is_empty() {
+                let j = locs.lowest_set_bit();
+                locs.unset(j);
 
                 ret[dic.id_to_coord[j as usize]] = pval;
             }
