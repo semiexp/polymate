@@ -29,50 +29,7 @@ fn search(dic: &Dictionary<u64>, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<
     let pos = (!mask).trailing_zeros() as i32;
 
     if pos == dic.n_target_cells {
-        // check for uniqueness
-        let answer = Answer::from_answer(dic, answer_raw);
-
-        for i in 1..24 {
-            if (dic.target_symmetry & (1u64 << i)) != 0 {
-                let answer_rot = answer.trans(ROTATIONS[i]);
-                if answer > answer_rot {
-                    return;
-                }
-            }
-        }
-
-        // check for mirror flips?
-        let mut is_mirror_ok = true;
-        for i in 0..rem_piece.len() {
-            let n_used = dic.piece_count[i] - rem_piece[i];
-            if dic.mirror_pair[i] == -1 || dic.piece_count[dic.mirror_pair[i] as usize] < n_used {
-                is_mirror_ok = false;
-                break;
-            }
-        }
-
-        if is_mirror_ok {
-            for i in 24..48 {
-                if (dic.target_symmetry & (1u64 << i)) != 0 {
-                    let mut answer_rot = answer.trans(TRANSFORMATIONS[i]);
-                    answer_rot.mirror(&dic.mirror_pair);
-                    if answer > answer_rot {
-                        return;
-                    }
-                }
-            }
-        }
-
-        // save answer
-        answers.count += 1;
-
-        let save = match answers.save_limit {
-            Some(lim) => answers.count <= lim as u64,
-            None => true,
-        };
-        if save {
-            answers.answer.push(answer);
-        }
+        save_answer(dic, rem_piece, answer_raw, answers);
         return;
     }
 
@@ -105,4 +62,51 @@ fn search(dic: &Dictionary<u64>, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<
     }
 
     unsafe { *answer_raw.get_unchecked_mut(pos as usize) = (-1, -1); }
+}
+
+fn save_answer<T: Bits>(dic: &Dictionary<T>, rem_piece: &mut Vec<i32>, answer_raw: &mut Vec<(i32, i32)>, answers: &mut Answers) {
+    // check for uniqueness
+    let answer = Answer::from_answer(dic, answer_raw);
+
+    for i in 1..24 {
+        if (dic.target_symmetry & (1u64 << i)) != 0 {
+            let answer_rot = answer.trans(ROTATIONS[i]);
+            if answer > answer_rot {
+                return;
+            }
+        }
+    }
+
+    // check for mirror flips?
+    let mut is_mirror_ok = true;
+    for i in 0..rem_piece.len() {
+        let n_used = dic.piece_count[i] - rem_piece[i];
+        if dic.mirror_pair[i] == -1 || dic.piece_count[dic.mirror_pair[i] as usize] < n_used {
+            is_mirror_ok = false;
+            break;
+        }
+    }
+
+    if is_mirror_ok {
+        for i in 24..48 {
+            if (dic.target_symmetry & (1u64 << i)) != 0 {
+                let mut answer_rot = answer.trans(TRANSFORMATIONS[i]);
+                answer_rot.mirror(&dic.mirror_pair);
+                if answer > answer_rot {
+                    return;
+                }
+            }
+        }
+    }
+
+    // save answer
+    answers.count += 1;
+
+    let save = match answers.save_limit {
+        Some(lim) => answers.count <= lim as u64,
+        None => true,
+    };
+    if save {
+        answers.answer.push(answer);
+    }
 }
