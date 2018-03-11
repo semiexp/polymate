@@ -56,7 +56,7 @@ impl<T: Bits> Dictionary<T> {
             }
         }
 
-        if n_target_cells > 64 { unimplemented!(); }
+        if n_target_cells > T::max_capacity() { panic!("Too small capacity"); }
 
         let mut piece_canonical = vec![];
         for i in 0..n_pieces {
