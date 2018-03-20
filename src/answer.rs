@@ -58,6 +58,26 @@ impl Answer {
             d.0 = mirror_pair[d.0 as usize];
         }
     }
+    pub fn reindex(&mut self, total_piece_count: &Vec<i32>, rem_piece: &Vec<i32>) {
+        let mut ofs = vec![0; total_piece_count.len()];
+        for i in 1..total_piece_count.len() {
+            ofs[i] = ofs[i - 1] + (total_piece_count[i - 1] - rem_piece[i - 1]);
+        }
+        let total_pieces_used = ofs[ofs.len() - 1] + (total_piece_count[total_piece_count.len() - 1] - rem_piece[total_piece_count.len() - 1]);
+        let mut piece_idx = vec![0; total_piece_count.len()];
+        let mut new_idx = vec![-1; total_pieces_used as usize];
+
+        for pn in &mut self.data {
+            let p = pn.0 as usize;
+            let idx_orig = (ofs[p] + pn.1) as usize;
+            if new_idx[idx_orig] == -1 {
+                new_idx[idx_orig] = piece_idx[p];
+                piece_idx[p] += 1;
+            }
+            let n2 = new_idx[idx_orig];
+            pn.1 = n2;
+        }
+    }
 }
 
 impl Index<Coord> for Answer {

@@ -125,7 +125,8 @@ fn save_answer<T: Bits>(dic: &Dictionary<T>, rem_piece: &mut Vec<i32>, answer_ra
 
     for i in 1..24 {
         if (dic.target_symmetry & (1u64 << i)) != 0 {
-            let answer_rot = answer.trans(ROTATIONS[i]);
+            let mut answer_rot = answer.trans(ROTATIONS[i]);
+            answer_rot.reindex(&dic.piece_count, rem_piece);
             if answer > answer_rot {
                 return;
             }
@@ -147,6 +148,7 @@ fn save_answer<T: Bits>(dic: &Dictionary<T>, rem_piece: &mut Vec<i32>, answer_ra
             if (dic.target_symmetry & (1u64 << i)) != 0 {
                 let mut answer_rot = answer.trans(TRANSFORMATIONS[i]);
                 answer_rot.mirror(&dic.mirror_pair);
+                answer_rot.reindex(&dic.piece_count, rem_piece);
                 if answer > answer_rot {
                     return;
                 }
